@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Header from "./components/Header";
 import OverviewCards from "./components/OverviewCards";
+import BudgetTracker from "./components/BudgetTracker";
 import QuickAddForm from "./components/QuickAddForm";
 import FilterBar from "./components/FilterBar";
 import TransactionList from "./components/TransactionList";
@@ -95,6 +96,13 @@ export default function App() {
     }
   };
 
+  // Cập nhật hạn mức ngân sách
+  const handleUpdateBudget = async (limitAmount) => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    await api.updateBudget(currentMonth, limitAmount);
+    await refreshData(filters);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-800 font-sans p-3.5 sm:p-6 md:py-8 antialiased">
       {/* Khung giao diện chuẩn Mobile-first, hiển thị thanh lịch ở giữa màn hình */}
@@ -105,6 +113,13 @@ export default function App() {
           balance={stats.balance}
           totalIncome={stats.totalIncome}
           totalExpense={stats.totalExpense}
+        />
+
+        {/* Theo dõi Ngân sách & Cảnh báo cháy túi */}
+        <BudgetTracker
+          budgetLimit={stats.budgetLimit}
+          totalExpense={stats.totalExpense}
+          onUpdateBudget={handleUpdateBudget}
         />
 
         {/* Thanh chuyển đổi Tab: Thu Chi vs Thống Kê */}
