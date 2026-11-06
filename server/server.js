@@ -19,7 +19,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Fallback error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error("Server error:", err);
   res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ", error: err.message });
 });
