@@ -6,11 +6,12 @@ import QuickAddForm from "./components/QuickAddForm";
 import FilterBar from "./components/FilterBar";
 import TransactionList from "./components/TransactionList";
 import AnalyticsChart from "./components/AnalyticsChart";
+import MobileBottomNav from "./components/MobileBottomNav";
 import { api } from "./services/api";
-import { ReceiptText, PieChart } from "lucide-react";
+import { ReceiptText, PieChart, Target } from "lucide-react";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("transactions"); // "transactions" | "analytics"
+  const [activeTab, setActiveTab] = useState("transactions"); // "transactions" | "analytics" | "budget"
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -104,7 +105,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-800 font-sans p-3.5 sm:p-6 md:py-8 antialiased">
+    <div className="min-h-screen bg-slate-100/70 text-slate-800 font-sans p-3.5 sm:p-6 md:py-8 pb-24 sm:pb-10 antialiased">
       {/* Khung giao diện chuẩn Mobile-first, hiển thị thanh lịch ở giữa màn hình */}
       <div className="max-w-lg mx-auto">
         <Header isOnline={isOnline} />
@@ -115,15 +116,8 @@ export default function App() {
           totalExpense={stats.totalExpense}
         />
 
-        {/* Theo dõi Ngân sách & Cảnh báo cháy túi */}
-        <BudgetTracker
-          budgetLimit={stats.budgetLimit}
-          totalExpense={stats.totalExpense}
-          onUpdateBudget={handleUpdateBudget}
-        />
-
-        {/* Thanh chuyển đổi Tab: Thu Chi vs Thống Kê */}
-        <div className="flex bg-slate-200/70 p-1.5 rounded-2xl mb-6">
+        {/* Thanh chuyển đổi Tab trên Desktop & Tablet */}
+        <div className="hidden sm:flex bg-slate-200/70 p-1.5 rounded-2xl mb-6">
           <button
             onClick={() => setActiveTab("transactions")}
             className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
@@ -132,7 +126,7 @@ export default function App() {
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <ReceiptText className="w-4 h-4" />
+            <ReceiptText className="w-4 h-4 text-indigo-600" />
             <span>Sổ Thu Chi</span>
           </button>
           <button
@@ -146,34 +140,57 @@ export default function App() {
             <PieChart className="w-4 h-4 text-purple-600" />
             <span>Biểu Đồ Chi Tiêu</span>
           </button>
+          <button
+            onClick={() => setActiveTab("budget")}
+            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === "budget"
+                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Target className="w-4 h-4 text-rose-500" />
+            <span>Hạn Mức Ngân Sách</span>
+          </button>
         </div>
 
-        {activeTab === "transactions" ? (
+        {/* Nội dung Tab */}
+        {activeTab === "transactions" && (
           <>
             <QuickAddForm onAddTransaction={handleAddTransaction} />
-
             <FilterBar filters={filters} setFilters={setFilters} />
-
             <TransactionList
               transactions={transactions}
               onDeleteTransaction={handleDeleteTransaction}
               isLoading={isLoading}
             />
           </>
-        ) : (
+        )}
+
+        {activeTab === "analytics" && (
           <AnalyticsChart
             categories={stats.categories || []}
             totalExpense={stats.totalExpense}
           />
         )}
 
-        <footer className="mt-8 text-center text-xs text-slate-400 pb-6">
+        {activeTab === "budget" && (
+          <BudgetTracker
+            budgetLimit={stats.budgetLimit}
+            totalExpense={stats.totalExpense}
+            onUpdateBudget={handleUpdateBudget}
+          />
+        )}
+
+        <footer className="mt-8 text-center text-xs text-slate-400 pb-2">
           <p>Ví Tài Chính Gen Z • Bản thử nghiệm nội bộ</p>
           <p className="mt-1 text-[11px] text-slate-400/80">
             {isOnline ? "🟢 Kết nối máy chủ Node.js sẵn sàng" : "🟡 Chế độ lưu trữ thiết bị"}
           </p>
         </footer>
       </div>
+
+      {/* Thanh điều hướng đáy màn hình trên Mobile */}
+      <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 }
