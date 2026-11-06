@@ -4,9 +4,12 @@ import OverviewCards from "./components/OverviewCards";
 import QuickAddForm from "./components/QuickAddForm";
 import FilterBar from "./components/FilterBar";
 import TransactionList from "./components/TransactionList";
+import AnalyticsChart from "./components/AnalyticsChart";
 import { api } from "./services/api";
+import { ReceiptText, PieChart } from "lucide-react";
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState("transactions"); // "transactions" | "analytics"
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -14,6 +17,7 @@ export default function App() {
     balance: 0,
     budgetLimit: 0,
     spentPercent: 0,
+    categories: [],
   });
   const [filters, setFilters] = useState({
     search: "",
@@ -103,16 +107,50 @@ export default function App() {
           totalExpense={stats.totalExpense}
         />
 
-        <QuickAddForm onAddTransaction={handleAddTransaction} />
+        {/* Thanh chuyển đổi Tab: Thu Chi vs Thống Kê */}
+        <div className="flex bg-slate-200/70 p-1.5 rounded-2xl mb-6">
+          <button
+            onClick={() => setActiveTab("transactions")}
+            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === "transactions"
+                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <ReceiptText className="w-4 h-4" />
+            <span>Sổ Thu Chi</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("analytics")}
+            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              activeTab === "analytics"
+                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <PieChart className="w-4 h-4 text-purple-600" />
+            <span>Biểu Đồ Chi Tiêu</span>
+          </button>
+        </div>
 
-        {/* Thanh tìm kiếm & Bộ lọc linh hoạt */}
-        <FilterBar filters={filters} setFilters={setFilters} />
+        {activeTab === "transactions" ? (
+          <>
+            <QuickAddForm onAddTransaction={handleAddTransaction} />
 
-        <TransactionList
-          transactions={transactions}
-          onDeleteTransaction={handleDeleteTransaction}
-          isLoading={isLoading}
-        />
+            <FilterBar filters={filters} setFilters={setFilters} />
+
+            <TransactionList
+              transactions={transactions}
+              onDeleteTransaction={handleDeleteTransaction}
+              isLoading={isLoading}
+            />
+          </>
+        ) : (
+          <AnalyticsChart
+            categories={stats.categories || []}
+            totalExpense={stats.totalExpense}
+          />
+        )}
 
         <footer className="mt-8 text-center text-xs text-slate-400 pb-6">
           <p>Ví Tài Chính Gen Z • Bản thử nghiệm nội bộ</p>
