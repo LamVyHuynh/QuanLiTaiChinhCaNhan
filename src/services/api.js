@@ -74,14 +74,32 @@ function saveLocalTransactions(txs) {
 }
 
 export const api = {
-  // Lấy danh sách giao dịch
+  // Lấy danh sách giao dịch có hỗ trợ bộ lọc và tìm kiếm
   async getTransactions(filters = {}) {
+    const today = new Date().toISOString().split("T")[0];
+    let computedStartDate = filters.startDate;
+    let computedEndDate = filters.endDate;
+    let computedMonth = filters.month;
+
+    if (filters.period === "today") {
+      computedStartDate = today;
+      computedEndDate = today;
+    } else if (filters.period === "week") {
+      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+      computedStartDate = weekAgo;
+      computedEndDate = today;
+    } else if (filters.period === "month") {
+      computedMonth = today.slice(0, 7);
+    }
+
     try {
       const params = new URLSearchParams();
       if (filters.type && filters.type !== "all") params.append("type", filters.type);
       if (filters.category && filters.category !== "Tất cả") params.append("category", filters.category);
       if (filters.search) params.append("search", filters.search);
-      if (filters.month) params.append("month", filters.month);
+      if (computedMonth) params.append("month", computedMonth);
+      if (computedStartDate) params.append("startDate", computedStartDate);
+      if (computedEndDate) params.append("endDate", computedEndDate);
 
       const url = `${API_BASE}/transactions${params.toString() ? `?${params.toString()}` : ""}`;
       const res = await fetch(url);
@@ -104,8 +122,14 @@ export const api = {
       const q = filters.search.toLowerCase();
       list = list.filter((t) => t.title.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
     }
-    if (filters.month) {
-      list = list.filter((t) => t.date && t.date.startsWith(filters.month));
+    if (computedMonth) {
+      list = list.filter((t) => t.date && t.date.startsWith(computedMonth));
+    }
+    if (computedStartDate) {
+      list = list.filter((t) => t.date && t.date >= computedStartDate);
+    }
+    if (computedEndDate) {
+      list = list.filter((t) => t.date && t.date <= computedEndDate);
     }
     return { data: list, isOnline: false };
   },

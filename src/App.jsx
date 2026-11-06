@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Header from "./components/Header";
 import OverviewCards from "./components/OverviewCards";
 import QuickAddForm from "./components/QuickAddForm";
+import FilterBar from "./components/FilterBar";
 import TransactionList from "./components/TransactionList";
 import { api } from "./services/api";
 
@@ -14,14 +15,20 @@ export default function App() {
     budgetLimit: 0,
     spentPercent: 0,
   });
+  const [filters, setFilters] = useState({
+    search: "",
+    type: "all",
+    category: "Tất cả",
+    period: "month",
+  });
   const [isOnline, setIsOnline] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load danh sách và thống kê khi thao tác
-  const refreshData = useCallback(async () => {
+  // Load danh sách và thống kê
+  const refreshData = useCallback(async (currentFilters = filters) => {
     try {
       const [txResult, statsResult] = await Promise.all([
-        api.getTransactions(),
+        api.getTransactions(currentFilters),
         api.getStats(),
       ]);
 
@@ -34,16 +41,16 @@ export default function App() {
     } catch (err) {
       console.error("Lỗi khi tải dữ liệu:", err);
     }
-  }, []);
+  }, [filters]);
 
-  // Khởi tạo ban đầu với cleanup flag chuẩn React 19
+  // Khởi tạo & Tự động lọc khi filters thay đổi
   useEffect(() => {
     let isCancelled = false;
 
     async function fetchData() {
       try {
         const [txResult, statsResult] = await Promise.all([
-          api.getTransactions(),
+          api.getTransactions(filters),
           api.getStats(),
         ]);
 
@@ -55,7 +62,7 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.error("Lỗi khi khởi tạo dữ liệu:", err);
+        console.error("Lỗi khi lọc dữ liệu:", err);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -68,19 +75,19 @@ export default function App() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [filters]);
 
   // Thêm giao dịch mới
   const handleAddTransaction = async (newTx) => {
     await api.createTransaction(newTx);
-    await refreshData();
+    await refreshData(filters);
   };
 
   // Xóa giao dịch
   const handleDeleteTransaction = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) {
       await api.deleteTransaction(id);
-      await refreshData();
+      await refreshData(filters);
     }
   };
 
@@ -97,6 +104,9 @@ export default function App() {
         />
 
         <QuickAddForm onAddTransaction={handleAddTransaction} />
+
+        {/* Thanh tìm kiếm & Bộ lọc linh hoạt */}
+        <FilterBar filters={filters} setFilters={setFilters} />
 
         <TransactionList
           transactions={transactions}
