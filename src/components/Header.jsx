@@ -1,43 +1,29 @@
-import { Sparkles, Wifi, WifiOff } from "lucide-react";
+import { Wallet } from "lucide-react";
 
 export default function Header({ isOnline }) {
   return (
-    <header className="mb-6 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
-          <Sparkles className="w-6 h-6 animate-pulse" />
+    <header className="mb-5 flex items-center justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+          <Wallet className="w-5 h-5 text-indigo-400" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-              Ví Gen Z 💸
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Quản lý chi tiêu dễ thở, ví lúc nào cũng rủng rỉnh
-          </p>
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+            Ví Chi Tiêu
+          </h1>
         </div>
       </div>
 
       <div
-        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-          isOnline
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
-            : "bg-amber-50 text-amber-700 border border-amber-200/60"
-        }`}
-        title={isOnline ? "Đang đồng bộ với Node.js Backend" : "Đang lưu tạm LocalStorage (Backend chưa mở)"}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white border border-slate-200/80 text-slate-600 shadow-xs"
+        title={isOnline ? "Kết nối máy chủ Backend" : "Lưu trữ nội bộ thiết bị"}
       >
-        {isOnline ? (
-          <>
-            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden sm:inline">API Online</span>
-          </>
-        ) : (
-          <>
-            <WifiOff className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden sm:inline">Offline Mode</span>
-          </>
-        )}
+        <span
+          className={`w-2 h-2 rounded-full ${
+            isOnline ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+          }`}
+        />
+        <span>{isOnline ? "Online" : "Offline"}</span>
       </div>
     </header>
   );

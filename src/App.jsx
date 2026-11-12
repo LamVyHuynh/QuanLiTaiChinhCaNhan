@@ -91,7 +91,7 @@ export default function App() {
 
   // Xóa giao dịch
   const handleDeleteTransaction = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) {
+    if (window.confirm("Bạn có chắc muốn xóa giao dịch này?")) {
       await api.deleteTransaction(id);
       await refreshData(filters);
     }
@@ -105,9 +105,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-800 font-sans p-3.5 sm:p-6 md:py-8 pb-24 sm:pb-10 antialiased">
-      {/* Khung giao diện chuẩn Mobile-first, hiển thị thanh lịch ở giữa màn hình */}
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 sm:p-6 pb-20 sm:pb-8 antialiased">
+      <div className="max-w-md mx-auto">
         <Header isOnline={isOnline} />
 
         <OverviewCards
@@ -116,44 +115,44 @@ export default function App() {
           totalExpense={stats.totalExpense}
         />
 
-        {/* Thanh chuyển đổi Tab trên Desktop & Tablet */}
-        <div className="hidden sm:flex bg-slate-200/70 p-1.5 rounded-2xl mb-6">
+        {/* Thanh chuyển tab trên Desktop / Tablet */}
+        <div className="hidden sm:flex bg-slate-200/60 p-1 rounded-xl mb-5 text-xs font-semibold">
           <button
             onClick={() => setActiveTab("transactions")}
-            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
               activeTab === "transactions"
-                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <ReceiptText className="w-4 h-4 text-indigo-600" />
-            <span>Sổ Thu Chi</span>
+            <ReceiptText className="w-3.5 h-3.5" />
+            <span>Thu Chi</span>
           </button>
           <button
             onClick={() => setActiveTab("analytics")}
-            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
               activeTab === "analytics"
-                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <PieChart className="w-4 h-4 text-purple-600" />
-            <span>Biểu Đồ Chi Tiêu</span>
+            <PieChart className="w-3.5 h-3.5" />
+            <span>Thống Kê</span>
           </button>
           <button
             onClick={() => setActiveTab("budget")}
-            className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
               activeTab === "budget"
-                ? "bg-white text-slate-900 shadow-sm shadow-slate-200"
+                ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Target className="w-4 h-4 text-rose-500" />
-            <span>Hạn Mức Ngân Sách</span>
+            <Target className="w-3.5 h-3.5" />
+            <span>Hạn Mức</span>
           </button>
         </div>
 
-        {/* Nội dung Tab */}
+        {/* Nội dung theo Tab */}
         {activeTab === "transactions" && (
           <>
             <QuickAddForm onAddTransaction={handleAddTransaction} />
@@ -180,16 +179,9 @@ export default function App() {
             onUpdateBudget={handleUpdateBudget}
           />
         )}
-
-        <footer className="mt-8 text-center text-xs text-slate-400 pb-2">
-          <p>Ví Tài Chính Gen Z • Bản thử nghiệm nội bộ</p>
-          <p className="mt-1 text-[11px] text-slate-400/80">
-            {isOnline ? "🟢 Kết nối máy chủ Node.js sẵn sàng" : "🟡 Chế độ lưu trữ thiết bị"}
-          </p>
-        </footer>
       </div>
 
-      {/* Thanh điều hướng đáy màn hình trên Mobile */}
+      {/* Điều hướng dưới đáy cho Mobile */}
       <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
