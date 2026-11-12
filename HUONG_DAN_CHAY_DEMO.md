@@ -13,7 +13,17 @@
 
 ## 2. Cách khởi động ứng dụng (1-Click Run)
 
-### Cách A: Chạy cả Backend & Frontend cùng lúc (Khuyên dùng)
+### ⚡ Cách 1: Chạy 1 LỆNH DUY NHẤT cho cả Backend & Frontend (Nhanh nhất)
+Chỉ cần mở **1 cửa sổ Terminal** và gõ:
+```bash
+npm start
+```
+*(hoặc `npm run dev:all`)*
+> Lệnh này sẽ tự động khởi động song song cả **Backend Node.js (cổng 5000)** và **Frontend Vite (cổng 5173)** trong cùng 1 terminal, không lo quên bật backend!
+
+---
+
+### Cách 2: Chạy riêng từng phần (nếu muốn debug riêng)
 
 Mở 2 cửa sổ dòng lệnh Terminal trong thư mục dự án:
 
@@ -22,7 +32,6 @@ Mở 2 cửa sổ dòng lệnh Terminal trong thư mục dự án:
 npm run server
 ```
 > Server sẽ chạy tại: `http://localhost:5000` (API: `http://localhost:5000/api`)
-> Cơ sở dữ liệu SQLite tự động tạo tại `server/data/finance.sqlite` và tự động nạp sẵn dữ liệu mẫu cho giới trẻ.
 
 **Terminal 2: Khởi động Frontend Web (Vite + React)**
 ```bash
