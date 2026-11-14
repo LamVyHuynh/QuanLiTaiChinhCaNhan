@@ -24,13 +24,13 @@ export default function FilterBar({ filters, setFilters }) {
         )}
       </div>
 
-      {/* Bộ lọc loại Thu/Chi và Thời gian dạng nút bấm rõ ràng */}
+      {/* Bộ lọc loại Thu/Chi và Thời gian dạng nút bấm rõ ràng (Khoản Chi luôn ở đầu) */}
       <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 scrollbar-none text-xs">
         <div className="flex items-center gap-1.5">
           {[
-            { id: "all", label: "Tất cả" },
-            { id: "expense", label: "💸 Chỉ Chi" },
-            { id: "income", label: "💵 Chỉ Thu" },
+            { id: "expense", label: "💸 Khoản Chi", activeClass: "bg-rose-600 text-white shadow-xs" },
+            { id: "income", label: "💵 Khoản Thu", activeClass: "bg-emerald-600 text-white shadow-xs" },
+            { id: "all", label: "Tất cả", activeClass: "bg-slate-900 text-white shadow-xs" },
           ].map((item) => (
             <button
               key={item.id}
@@ -38,7 +38,7 @@ export default function FilterBar({ filters, setFilters }) {
               onClick={() => setFilters((prev) => ({ ...prev, type: item.id }))}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
                 filters.type === item.id
-                  ? "bg-slate-900 text-white shadow-xs"
+                  ? item.activeClass
                   : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
               }`}
             >

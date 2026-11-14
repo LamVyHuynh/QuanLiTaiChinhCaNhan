@@ -107,11 +107,17 @@ const server = app.listen(0, "127.0.0.1", async () => {
       }
     });
 
-    // 6. Test Thống kê tổng quan & phân bổ
-    await test("Lấy thống kê GET /api/stats", async () => {
+    // 6. Test Thống kê tổng quan & phân bổ (Khoản Chi và Khoản Thu)
+    await test("Lấy thống kê GET /api/stats (khoản chi & khoản thu)", async () => {
       const res = await fetch(`${baseUrl}/stats`);
       const json = await res.json();
-      if (!json.success || typeof json.data.balance !== "number" || !Array.isArray(json.data.categories)) {
+      if (
+        !json.success ||
+        typeof json.data.balance !== "number" ||
+        !Array.isArray(json.data.categories) ||
+        !Array.isArray(json.data.expenseCategories) ||
+        !Array.isArray(json.data.incomeCategories)
+      ) {
         throw new Error("Dữ liệu thống kê không đúng format");
       }
     });

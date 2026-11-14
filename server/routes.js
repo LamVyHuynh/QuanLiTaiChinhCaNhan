@@ -160,7 +160,7 @@ router.get("/stats", (req, res) => {
     const balance = totals.totalIncome - totals.totalExpense;
 
     // Phân bổ chi tiêu theo từng danh mục trong tháng
-    const categoryBreakdown = db.prepare(`
+    const expenseBreakdown = db.prepare(`
       SELECT 
         category,
         SUM(amount) as total,
@@ -171,12 +171,30 @@ router.get("/stats", (req, res) => {
       ORDER BY total DESC
     `).all(`${currentMonth}%`);
 
-    // Gắn % cho từng danh mục
-    const formattedCategories = categoryBreakdown.map((item) => ({
+    const formattedExpenseCategories = expenseBreakdown.map((item) => ({
       category: item.category,
       total: item.total,
       count: item.count,
       percentage: totals.totalExpense > 0 ? Math.round((item.total / totals.totalExpense) * 100) : 0,
+    }));
+
+    // Phân bổ thu nhập theo từng danh mục trong tháng
+    const incomeBreakdown = db.prepare(`
+      SELECT 
+        category,
+        SUM(amount) as total,
+        COUNT(*) as count
+      FROM transactions
+      WHERE type = 'income' AND date LIKE ?
+      GROUP BY category
+      ORDER BY total DESC
+    `).all(`${currentMonth}%`);
+
+    const formattedIncomeCategories = incomeBreakdown.map((item) => ({
+      category: item.category,
+      total: item.total,
+      count: item.count,
+      percentage: totals.totalIncome > 0 ? Math.round((item.total / totals.totalIncome) * 100) : 0,
     }));
 
     // Lấy thông tin hạn mức ngân sách tháng
@@ -193,7 +211,9 @@ router.get("/stats", (req, res) => {
         balance,
         budgetLimit,
         spentPercent,
-        categories: formattedCategories,
+        categories: formattedExpenseCategories,
+        expenseCategories: formattedExpenseCategories,
+        incomeCategories: formattedIncomeCategories,
       },
     });
   } catch (error) {

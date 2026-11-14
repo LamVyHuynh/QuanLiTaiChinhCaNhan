@@ -196,16 +196,35 @@ export const api = {
     const totalExpense = list.filter((t) => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0);
     const balance = totalIncome - totalExpense;
 
-    // Phân bổ danh mục
-    const catMap = {};
+    // Phân bổ danh mục Chi
+    const expenseCatMap = {};
+    const expenseCountMap = {};
     list.filter((t) => t.type === "expense").forEach((t) => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount);
+      expenseCatMap[t.category] = (expenseCatMap[t.category] || 0) + Number(t.amount);
+      expenseCountMap[t.category] = (expenseCountMap[t.category] || 0) + 1;
     });
-    const categories = Object.entries(catMap)
+    const expenseCategories = Object.entries(expenseCatMap)
       .map(([category, total]) => ({
         category,
         total,
+        count: expenseCountMap[category] || 1,
         percentage: totalExpense > 0 ? Math.round((total / totalExpense) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    // Phân bổ danh mục Thu
+    const incomeCatMap = {};
+    const incomeCountMap = {};
+    list.filter((t) => t.type === "income").forEach((t) => {
+      incomeCatMap[t.category] = (incomeCatMap[t.category] || 0) + Number(t.amount);
+      incomeCountMap[t.category] = (incomeCountMap[t.category] || 0) + 1;
+    });
+    const incomeCategories = Object.entries(incomeCatMap)
+      .map(([category, total]) => ({
+        category,
+        total,
+        count: incomeCountMap[category] || 1,
+        percentage: totalIncome > 0 ? Math.round((total / totalIncome) * 100) : 0,
       }))
       .sort((a, b) => b.total - a.total);
 
@@ -220,7 +239,9 @@ export const api = {
         balance,
         budgetLimit: savedBudget,
         spentPercent,
-        categories,
+        categories: expenseCategories,
+        expenseCategories,
+        incomeCategories,
       },
       isOnline: false,
     };

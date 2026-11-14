@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Plus, Minus, ChevronDown, ChevronUp, Tag, Calendar, FileText } from "lucide-react";
+import { Plus, Minus, X, Tag, Calendar, FileText } from "lucide-react";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "../constants/categories";
 
 export default function QuickAddForm({ onAddTransaction }) {
   const [isOpen, setIsOpen] = useState(false);
+  // Khoản chi luôn là mặc định
   const [type, setType] = useState("expense");
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -17,6 +18,15 @@ export default function QuickAddForm({ onAddTransaction }) {
   const handleTypeChange = (newType) => {
     setType(newType);
     setCategory(newType === "expense" ? "Trà sữa / Cà phê" : "Lương");
+  };
+
+  const handleOpenForm = (targetType) => {
+    if (isOpen && type === targetType) {
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+      handleTypeChange(targetType);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -56,84 +66,91 @@ export default function QuickAddForm({ onAddTransaction }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm mb-5 overflow-hidden transition-all">
-      {/* Nút bấm mở/đóng form to, rõ, dễ bấm */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs">
-            <Plus className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-sm font-extrabold text-slate-900 block">
-              Ghi Chép Thu / Chi Mới
-            </span>
-            <span className="text-xs text-slate-500">
-              {isOpen ? "Bấm để thu gọn form" : "Bấm vào đây để thêm khoản tiền mới"}
-            </span>
-          </div>
-        </div>
-        <div className="text-slate-400 p-1 bg-slate-100 rounded-lg">
-          {isOpen ? <ChevronUp className="w-4 h-4 text-slate-700" /> : <ChevronDown className="w-4 h-4 text-slate-700" />}
-        </div>
-      </button>
-
-      {/* Form nhập liệu đơn giản, thân thiện */}
-      {isOpen && (
-        <form onSubmit={handleSubmit} className="p-4 pt-1 space-y-3.5 border-t border-slate-100">
-          {/* Chọn Loại: Chi tiền hay Thu tiền */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">
-              1. Bạn muốn ghi loại tiền nào?
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleTypeChange("expense")}
-                className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  type === "expense"
-                    ? "bg-rose-500 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Minus className="w-4 h-4" />
-                <span>💸 Khoản Chi (Tiêu tiền)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleTypeChange("income")}
-                className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  type === "income"
-                    ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Plus className="w-4 h-4" />
-                <span>💵 Khoản Thu (Nhận tiền)</span>
-              </button>
+      {/* Tách riêng 2 mục Thêm: Chi riêng và Thu riêng (Chi luôn để lên đầu/bên trái) */}
+      <div className="p-3 bg-white">
+        <div className="grid grid-cols-2 gap-2.5">
+          {/* Nút Thêm Khoản Chi (Luôn ở đầu tiên) */}
+          <button
+            type="button"
+            onClick={() => handleOpenForm("expense")}
+            className={`p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all border ${
+              isOpen && type === "expense"
+                ? "bg-rose-600 text-white border-rose-600 shadow-sm"
+                : "bg-rose-50/80 border-rose-200 text-rose-700 hover:bg-rose-100"
+            }`}
+          >
+            <div
+              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                isOpen && type === "expense" ? "bg-white/20 text-white" : "bg-rose-500 text-white"
+              }`}
+            >
+              <Minus className="w-3.5 h-3.5" />
             </div>
+            <span>Thêm Khoản Chi</span>
+          </button>
+
+          {/* Nút Thêm Khoản Thu */}
+          <button
+            type="button"
+            onClick={() => handleOpenForm("income")}
+            className={`p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all border ${
+              isOpen && type === "income"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                : "bg-emerald-50/80 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+            }`}
+          >
+            <div
+              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                isOpen && type === "income" ? "bg-white/20 text-white" : "bg-emerald-500 text-white"
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </div>
+            <span>Thêm Khoản Thu</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Form nhập liệu khi mở */}
+      {isOpen && (
+        <form onSubmit={handleSubmit} className="p-4 pt-2 space-y-3.5 border-t border-slate-100 bg-slate-50/50">
+          {/* Tiêu đề form & nút đóng */}
+          <div className="flex items-center justify-between pb-1">
+            <span
+              className={`text-xs font-black uppercase tracking-wider flex items-center gap-1.5 ${
+                type === "expense" ? "text-rose-600" : "text-emerald-600"
+              }`}
+            >
+              {type === "expense" ? "💸 Ghi Khoản Chi Mới" : "💵 Ghi Khoản Thu Mới"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-slate-200/60 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Đóng</span>
+            </button>
           </div>
 
           {/* Nhập Tên & Số tiền */}
           <div className="space-y-2.5">
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">
-                2. Tên khoản tiền:
+                Tên khoản tiền:
               </label>
               <input
                 type="text"
                 placeholder={type === "expense" ? "Ví dụ: Ăn trưa, Đổ xăng, Mua áo..." : "Ví dụ: Tiền lương, Làm thêm, Thưởng..."}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-indigo-500 focus:bg-white text-slate-900 transition-colors"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-indigo-500 text-slate-900 transition-colors shadow-xs"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">
-                3. Số tiền (Đơn vị tính: k):
+                Số tiền (Đơn vị tính: k):
               </label>
               <div className="relative">
                 <input
@@ -141,7 +158,7 @@ export default function QuickAddForm({ onAddTransaction }) {
                   placeholder="Ví dụ: gõ 19 là 19k (19.000đ)"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-14 py-2.5 text-sm font-bold outline-none focus:border-indigo-500 focus:bg-white text-slate-900 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-3.5 pr-14 py-2.5 text-sm font-bold outline-none focus:border-indigo-500 text-slate-900 transition-colors shadow-xs"
                 />
                 <span className="absolute right-3 top-2 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-extrabold text-xs">
                   k
@@ -157,7 +174,7 @@ export default function QuickAddForm({ onAddTransaction }) {
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1">
               <Tag className="w-3.5 h-3.5" />
-              <span>4. Chọn danh mục phù hợp:</span>
+              <span>Chọn danh mục phù hợp:</span>
             </label>
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {categories.map((c) => {
@@ -170,7 +187,7 @@ export default function QuickAddForm({ onAddTransaction }) {
                     className={`shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
                       isSelected
                         ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
                     <span className="mr-1.5 text-sm">{c.emoji}</span>
@@ -183,7 +200,7 @@ export default function QuickAddForm({ onAddTransaction }) {
 
           {/* Ngày & Ghi chú */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-xs">
               <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="date"
@@ -193,7 +210,7 @@ export default function QuickAddForm({ onAddTransaction }) {
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-xs">
               <FileText className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="text"
