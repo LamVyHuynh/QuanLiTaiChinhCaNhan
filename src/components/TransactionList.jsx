@@ -1,4 +1,5 @@
 import { Trash2, Calendar, Coffee, Utensils, ShoppingBag, Home, Bike, BookOpen, Gamepad2, MoreHorizontal, Briefcase, Gift, Heart, Sparkles } from "lucide-react";
+import { formatMoney } from "../utils/format";
 
 // Mapping icon theo danh mục
 const getCategoryIcon = (category, type) => {
@@ -34,10 +35,6 @@ const getCategoryBg = (type) => {
 };
 
 export default function TransactionList({ transactions, onDeleteTransaction, isLoading }) {
-  const formatMoney = (num) => {
-    return Number(num).toLocaleString("vi-VN") + " đ";
-  };
-
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const [y, m, d] = dateStr.split("-");

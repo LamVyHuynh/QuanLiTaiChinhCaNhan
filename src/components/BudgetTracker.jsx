@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { Edit3, Check, X, Target } from "lucide-react";
+import { formatMoney } from "../utils/format";
 
 export default function BudgetTracker({ budgetLimit = 0, totalExpense = 0, onUpdateBudget }) {
   const [isEditing, setIsEditing] = useState(false);
   const [newLimit, setNewLimit] = useState(budgetLimit ? String(budgetLimit) : "4500000");
-
-  const formatMoney = (num) => {
-    return Number(num).toLocaleString("vi-VN") + " đ";
-  };
 
   const limit = Number(budgetLimit) || 0;
   const spent = Number(totalExpense) || 0;
@@ -19,7 +16,7 @@ export default function BudgetTracker({ budgetLimit = 0, totalExpense = 0, onUpd
     e.preventDefault();
     const val = Number(newLimit);
     if (isNaN(val) || val <= 0) {
-      alert("Hạn mức ngân sách phải lớn hơn 0 đ");
+      alert("Hạn mức ngân sách phải lớn hơn 0");
       return;
     }
     await onUpdateBudget(val);

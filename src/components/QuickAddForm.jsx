@@ -25,11 +25,15 @@ export default function QuickAddForm({ onAddTransaction }) {
       alert("Vui lòng nhập tên giao dịch");
       return;
     }
-    const numAmount = Number(amount);
-    if (!numAmount || numAmount <= 0) {
-      alert("Vui lòng nhập số tiền hợp lệ (> 0 đ)");
+    const rawAmount = Number(amount);
+    if (!rawAmount || rawAmount <= 0) {
+      alert("Vui lòng nhập số tiền hợp lệ (> 0)");
       return;
     }
+
+    // Nếu người dùng nhập số nhỏ hơn 1000 (ví dụ 19, 50, 150) -> hiểu là 19k (19.000đ)
+    // Nếu nhập đủ từ 1000 trở lên (ví dụ 19000, 50000) -> giữ nguyên
+    const numAmount = rawAmount < 1000 ? rawAmount * 1000 : rawAmount;
 
     setIsSubmitting(true);
     try {
@@ -117,13 +121,13 @@ export default function QuickAddForm({ onAddTransaction }) {
             <div className="relative">
               <input
                 type="number"
-                placeholder="Số tiền (đ)"
+                placeholder="Số tiền (ví dụ: 19 hoặc 19000)"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 focus:bg-white text-slate-900"
               />
-              <span className="absolute right-3.5 top-2.5 text-xs font-medium text-slate-400">
-                VNĐ
+              <span className="absolute right-3.5 top-2.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                k
               </span>
             </div>
           </div>

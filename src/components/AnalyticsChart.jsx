@@ -1,4 +1,5 @@
 import { PieChart } from "lucide-react";
+import { formatMoney } from "../utils/format";
 
 const COLOR_PALETTE = [
   { bg: "bg-rose-500", text: "text-rose-600" },
@@ -11,10 +12,6 @@ const COLOR_PALETTE = [
 ];
 
 export default function AnalyticsChart({ categories = [], totalExpense = 0 }) {
-  const formatMoney = (num) => {
-    return Number(num).toLocaleString("vi-VN") + " đ";
-  };
-
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs mb-5">
       <div className="flex items-center justify-between mb-4">

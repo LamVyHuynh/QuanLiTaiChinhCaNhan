@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { Eye, EyeOff, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { formatMoney } from "../utils/format";
 
 export default function OverviewCards({ balance, totalIncome, totalExpense }) {
   const [showBalance, setShowBalance] = useState(true);
-
-  const formatMoney = (num) => {
-    return Number(num).toLocaleString("vi-VN") + " đ";
-  };
 
   return (
     <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-sm border border-slate-800 mb-5">
