@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
-import { formatMoney, formatRawVND } from "../utils/format";
+import { formatRawVND } from "../utils/format";
 
 export default function OverviewCards({ balance, totalIncome, totalExpense }) {
   const [showBalance, setShowBalance] = useState(true);
@@ -28,22 +28,15 @@ export default function OverviewCards({ balance, totalIncome, totalExpense }) {
         </button>
       </div>
 
-      {/* Số dư to rõ theo phong cách Gen Z */}
+      {/* Số dư to rõ đầy đủ số 0 theo định dạng chuẩn */}
       <div className="py-2 mb-3">
         {showBalance ? (
-          <div>
-            <div
-              className={`text-2xl sm:text-3xl font-black tracking-tight ${
-                balance >= 0 ? "text-slate-900" : "text-rose-600"
-              }`}
-            >
-              {formatMoney(balance)}
-            </div>
-            {Math.abs(balance) >= 1000000 && (
-              <span className="text-xs font-semibold text-slate-400 block mt-0.5">
-                (tương đương {formatRawVND(balance)})
-              </span>
-            )}
+          <div
+            className={`text-2xl sm:text-3xl font-black tracking-tight ${
+              balance >= 0 ? "text-slate-900" : "text-rose-600"
+            }`}
+          >
+            {formatRawVND(balance)}
           </div>
         ) : (
           <div className="text-2xl text-slate-400 font-mono tracking-widest py-1">
@@ -52,7 +45,7 @@ export default function OverviewCards({ balance, totalIncome, totalExpense }) {
         )}
       </div>
 
-      {/* Hai ô Thu Nhập và Chi Tiêu */}
+      {/* Hai ô Thu Nhập và Chi Tiêu hiển thị đầy đủ số 0 */}
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
         <div className="bg-emerald-50/70 border border-emerald-100 p-3 rounded-xl flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -62,8 +55,8 @@ export default function OverviewCards({ balance, totalIncome, totalExpense }) {
             <span className="text-[11px] font-semibold text-emerald-700 block">
               Tổng Thu Vào
             </span>
-            <span className="text-sm sm:text-base font-black text-emerald-800 block truncate" title={formatRawVND(totalIncome)}>
-              {showBalance ? `+${formatMoney(totalIncome)}` : "••••"}
+            <span className="text-sm sm:text-base font-black text-emerald-800 block truncate">
+              {showBalance ? `+${formatRawVND(totalIncome)}` : "••••"}
             </span>
           </div>
         </div>
@@ -76,8 +69,8 @@ export default function OverviewCards({ balance, totalIncome, totalExpense }) {
             <span className="text-[11px] font-semibold text-rose-700 block">
               Tổng Đã Chi
             </span>
-            <span className="text-sm sm:text-base font-black text-rose-800 block truncate" title={formatRawVND(totalExpense)}>
-              {showBalance ? `-${formatMoney(totalExpense)}` : "••••"}
+            <span className="text-sm sm:text-base font-black text-rose-800 block truncate">
+              {showBalance ? `-${formatRawVND(totalExpense)}` : "••••"}
             </span>
           </div>
         </div>
