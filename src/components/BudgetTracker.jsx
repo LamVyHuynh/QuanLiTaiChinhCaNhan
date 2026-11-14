@@ -83,7 +83,7 @@ export default function BudgetTracker({ budgetLimit = 0, totalExpense = 0, onUpd
             </button>
           </div>
           <p className="text-[11px] text-slate-400">
-            Gợi ý: Nhập <strong>4500</strong> tương đương hạn mức <strong>4 củ 500 cành</strong> (4,5 triệu).
+            Gợi ý: Nhập <strong>4500</strong> tương đương hạn mức <strong>4tr500k</strong> (4,5 triệu).
           </p>
         </form>
       ) : (

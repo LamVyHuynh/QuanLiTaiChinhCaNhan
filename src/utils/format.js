@@ -1,35 +1,36 @@
 /**
- * Hàm định dạng số tiền kết hợp phong cách Gen Z ("củ" và "cành"):
- * - Dưới 1 triệu: Hiển thị đơn vị "k" (Ví dụ: 19.000 -> 19k, 65.000 -> 65k)
- * - Từ 1 triệu trở lên: Chuyển đổi thành "củ" và "cành" (Ví dụ: 3.450.000 -> 3 củ 450 cành, 5.000.000 -> 5 củ)
+ * Hàm định dạng số tiền tối ưu, siêu ngắn gọn và đồng nhất theo đơn vị "k" và "tr":
+ * - Dưới 1 triệu: Hiển thị dạng "k" (Ví dụ: 19.000 -> 19k, 65.000 -> 65k)
+ * - Từ 1 triệu trở lên: Hiển thị dạng "tr...k" (Ví dụ: 3.450.000 -> 3tr450k, 5.000.000 -> 5tr, 2.200.000 -> 2tr200k)
  *
- * Ý nghĩa tâm lý học tài chính:
- * 1. Giúp người dùng không bị ảo tưởng "mình có quá nhiều số 0" để chi tiêu có chừng mực hơn.
- * 2. Ngôn ngữ vui nhộn, quen thuộc với Gen Z, đọc hiểu ngay trong tích tắc mà không cần căng mắt đếm số 0.
+ * Ưu điểm:
+ * 1. Cực kỳ ngắn gọn, tiết kiệm diện tích tối đa trên màn hình điện thoại.
+ * 2. Đồng nhất hoàn toàn với các khoản chi tiêu nhỏ (đều kết thúc bằng "k").
+ * 3. Chuẩn thói quen nhắn tin, chuyển khoản và ghi chú hàng ngày của người Việt (Zalo, Banking...).
  */
 export const formatMoney = (amount) => {
   const num = Number(amount) || 0;
   const isNegative = num < 0;
   const abs = Math.abs(num);
 
-  // 1. Khoản dưới 1 triệu: giữ định dạng "k" gọn gàng
+  // 1. Khoản dưới 1 triệu: hiển thị "k" (ví dụ: 19k, 65k, 500k)
   if (abs < 1000000) {
     const inK = Math.round((abs / 1000) * 10) / 10;
     const formattedK = inK.toLocaleString("vi-VN");
     return `${isNegative ? "-" : ""}${formattedK}k`;
   }
 
-  // 2. Khoản từ 1 triệu trở lên: chuyển sang "củ" và "cành"
-  const cu = Math.floor(abs / 1000000);
-  const remainingCanh = Math.round((abs % 1000000) / 1000);
+  // 2. Khoản từ 1 triệu trở lên: hiển thị "tr...k" (ví dụ: 3tr450k, 5tr)
+  const tr = Math.floor(abs / 1000000);
+  const remainingK = Math.round((abs % 1000000) / 1000);
 
-  const text = remainingCanh === 0 ? `${cu} củ` : `${cu} củ ${remainingCanh} cành`;
+  const text = remainingK === 0 ? `${tr}tr` : `${tr}tr${remainingK}k`;
   return `${isNegative ? "-" : ""}${text}`;
 };
 
 /**
- * Định dạng số tiền VNĐ truyền thống có dấu chấm phân cách (Ví dụ: 3.450.000 đ)
- * Dùng làm chú thích phụ bên dưới để người dùng vẫn nắm được con số tuyệt đối
+ * Định dạng số tiền VNĐ đầy đủ có dấu chấm phân cách (Ví dụ: 3.450.000 đ)
+ * Dùng làm chú thích phụ bên dưới
  */
 export const formatRawVND = (amount) => {
   const num = Number(amount) || 0;

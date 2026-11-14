@@ -148,7 +148,7 @@ export default function QuickAddForm({ onAddTransaction }) {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                💡 Mẹo: Gõ <strong>19</strong> là <strong>19k</strong>. Gõ <strong>3450</strong> là <strong>3 củ 450 cành</strong>!
+                💡 Mẹo: Gõ <strong>19</strong> là <strong>19k</strong>. Gõ <strong>3450</strong> là <strong>3tr450k</strong>!
               </p>
             </div>
           </div>
