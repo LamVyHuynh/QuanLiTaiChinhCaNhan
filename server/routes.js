@@ -262,4 +262,111 @@ router.post("/budget", (req, res) => {
   }
 });
 
+// 7. Quản lý danh mục thu chi (Categories CRUD)
+router.get("/categories", (req, res) => {
+  try {
+    const { type } = req.query;
+    let categories;
+    if (type && (type === "expense" || type === "income")) {
+      categories = db.prepare("SELECT * FROM categories WHERE type = ? ORDER BY id ASC").all(type);
+    } else {
+      categories = db.prepare("SELECT * FROM categories ORDER BY type ASC, id ASC").all();
+    }
+    res.json({ success: true, data: categories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/categories", (req, res) => {
+  try {
+    const { name, type, emoji, color } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: "Tên danh mục không được để trống" });
+    }
+    if (!type || !["income", "expense"].includes(type)) {
+      return res.status(400).json({ success: false, message: "Loại danh mục không hợp lệ" });
+    }
+
+    const trimmedName = name.trim();
+    const existing = db.prepare("SELECT * FROM categories WHERE name = ? AND type = ?").get(trimmedName, type);
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Danh mục này đã tồn tại" });
+    }
+
+    const stmt = db.prepare(`
+      INSERT INTO categories (name, type, emoji, color)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(
+      trimmedName,
+      type,
+      emoji || "📌",
+      color || "from-slate-400 to-slate-600"
+    );
+
+    const newCategory = db.prepare("SELECT * FROM categories WHERE id = ?").get(result.lastInsertRowid);
+    res.status(201).json({ success: true, data: newCategory, message: "Thêm danh mục thành công!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.put("/categories/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, emoji, color } = req.body;
+
+    const existing = db.prepare("SELECT * FROM categories WHERE id = ?").get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy danh mục" });
+    }
+
+    const newName = name ? name.trim() : existing.name;
+    const newEmoji = emoji !== undefined ? emoji : existing.emoji;
+    const newColor = color !== undefined ? color : existing.color;
+
+    // Cập nhật tên trong các giao dịch cũ nếu đổi tên danh mục
+    if (newName !== existing.name) {
+      db.prepare("UPDATE transactions SET category = ? WHERE category = ? AND type = ?").run(
+        newName,
+        existing.name,
+        existing.type
+      );
+    }
+
+    db.prepare(`
+      UPDATE categories
+      SET name = ?, emoji = ?, color = ?
+      WHERE id = ?
+    `).run(newName, newEmoji, newColor, id);
+
+    const updated = db.prepare("SELECT * FROM categories WHERE id = ?").get(id);
+    res.json({ success: true, data: updated, message: "Cập nhật danh mục thành công!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete("/categories/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare("SELECT * FROM categories WHERE id = ?").get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy danh mục" });
+    }
+
+    // Đưa các giao dịch thuộc danh mục này về 'Khác' để không bị mồ côi
+    db.prepare("UPDATE transactions SET category = 'Khác' WHERE category = ? AND type = ?").run(
+      existing.name,
+      existing.type
+    );
+
+    db.prepare("DELETE FROM categories WHERE id = ?").run(id);
+    res.json({ success: true, message: "Đã xóa danh mục thành công!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

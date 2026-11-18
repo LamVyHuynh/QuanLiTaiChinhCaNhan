@@ -43,6 +43,52 @@ db.exec(`
   );
 `);
 
+// Khởi tạo bảng categories (Danh mục thu chi tùy chỉnh)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+    emoji TEXT NOT NULL DEFAULT '📌',
+    color TEXT DEFAULT 'from-slate-400 to-slate-600',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, type)
+  );
+`);
+
+// Seed danh mục mặc định nếu chưa có
+const catCount = db.prepare("SELECT COUNT(*) as count FROM categories").get();
+if (catCount.count === 0) {
+  const insertCat = db.prepare(`
+    INSERT OR IGNORE INTO categories (name, type, emoji, color)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const defaultExpenses = [
+    ["Trà sữa / Cà phê", "expense", "🧋", "from-amber-400 to-orange-500"],
+    ["Ăn uống", "expense", "🍜", "from-orange-400 to-rose-500"],
+    ["Mua sắm", "expense", "🛍️", "from-pink-400 to-rose-500"],
+    ["Tiền trọ / Nhà", "expense", "🏠", "from-blue-400 to-indigo-500"],
+    ["Đi lại", "expense", "🛵", "from-emerald-400 to-teal-500"],
+    ["Học tập", "expense", "📚", "from-violet-400 to-purple-500"],
+    ["Giải trí", "expense", "🎮", "from-cyan-400 to-blue-500"],
+    ["Thú cưng", "expense", "🐱", "from-amber-400 to-yellow-500"],
+    ["Khác", "expense", "📌", "from-slate-400 to-slate-600"],
+  ];
+
+  const defaultIncomes = [
+    ["Lương", "income", "💼", "from-emerald-400 to-green-600"],
+    ["Làm thêm", "income", "⏳", "from-teal-400 to-emerald-600"],
+    ["Thưởng", "income", "🎁", "from-amber-400 to-yellow-500"],
+    ["Gia đình hỗ trợ", "income", "💖", "from-pink-400 to-rose-500"],
+    ["Đầu tư", "income", "📈", "from-blue-400 to-cyan-500"],
+    ["Khác", "income", "✨", "from-slate-400 to-slate-600"],
+  ];
+
+  defaultExpenses.forEach(([name, type, emoji, color]) => insertCat.run(name, type, emoji, color));
+  defaultIncomes.forEach(([name, type, emoji, color]) => insertCat.run(name, type, emoji, color));
+}
+
 // Seed dữ liệu mẫu nếu chưa có dữ liệu (Dành riêng cho giới trẻ / Gen Z)
 const countCheck = db.prepare("SELECT COUNT(*) as count FROM transactions").get();
 if (countCheck.count === 0) {

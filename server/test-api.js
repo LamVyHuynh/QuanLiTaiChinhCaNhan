@@ -158,6 +158,60 @@ const server = app.listen(0, "127.0.0.1", async () => {
       }
     });
 
+    // 9. Test Danh mục: Lấy danh sách GET /api/categories
+    let testCatId = null;
+    await test("Lấy danh sách danh mục GET /api/categories", async () => {
+      const res = await fetch(`${baseUrl}/categories`);
+      const json = await res.json();
+      if (!json.success || !Array.isArray(json.data) || json.data.length === 0) {
+        throw new Error("Lấy danh mục thất bại hoặc danh sách rỗng");
+      }
+    });
+
+    // 10. Test Danh mục: Thêm mới POST /api/categories
+    await test("Thêm danh mục mới POST /api/categories", async () => {
+      const res = await fetch(`${baseUrl}/categories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Thú cưng & Mèo",
+          type: "expense",
+          emoji: "🐱",
+          color: "from-amber-400 to-orange-500",
+        }),
+      });
+      const json = await res.json();
+      if (!json.success || !json.data || json.data.name !== "Thú cưng & Mèo") {
+        throw new Error("Thêm danh mục thất bại");
+      }
+      testCatId = json.data.id;
+    });
+
+    // 11. Test Danh mục: Cập nhật PUT /api/categories/:id
+    await test(`Cập nhật danh mục PUT /api/categories/${testCatId}`, async () => {
+      const res = await fetch(`${baseUrl}/categories/${testCatId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Thú cưng & Chó mèo",
+          emoji: "🐶",
+        }),
+      });
+      const json = await res.json();
+      if (!json.success || json.data.name !== "Thú cưng & Chó mèo" || json.data.emoji !== "🐶") {
+        throw new Error("Cập nhật danh mục thất bại");
+      }
+    });
+
+    // 12. Test Danh mục: Xóa DELETE /api/categories/:id
+    await test(`Xóa danh mục DELETE /api/categories/${testCatId}`, async () => {
+      const res = await fetch(`${baseUrl}/categories/${testCatId}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error("Xóa danh mục thất bại");
+    });
+
     console.log(`\n----------------------------------------`);
     console.log(`KẾT QUẢ KIỂM THỬ: ${passed} PASS, ${failed} FAIL`);
     console.log(`----------------------------------------\n`);

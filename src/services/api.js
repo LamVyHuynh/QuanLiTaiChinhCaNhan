@@ -3,6 +3,46 @@ const API_BASE = "/api";
 // Fallback localStorage data ban đầu nếu backend offline
 const FALLBACK_KEY = "genz_finance_transactions";
 const BUDGET_KEY = "genz_finance_budget";
+const CATEGORIES_KEY = "genz_finance_categories";
+
+const defaultCategories = [
+  { id: 1, name: "Trà sữa / Cà phê", type: "expense", emoji: "🧋", color: "from-amber-400 to-orange-500" },
+  { id: 2, name: "Ăn uống", type: "expense", emoji: "🍜", color: "from-orange-400 to-rose-500" },
+  { id: 3, name: "Mua sắm", type: "expense", emoji: "🛍️", color: "from-pink-400 to-rose-500" },
+  { id: 4, name: "Tiền trọ / Nhà", type: "expense", emoji: "🏠", color: "from-blue-400 to-indigo-500" },
+  { id: 5, name: "Đi lại", type: "expense", emoji: "🛵", color: "from-emerald-400 to-teal-500" },
+  { id: 6, name: "Học tập", type: "expense", emoji: "📚", color: "from-violet-400 to-purple-500" },
+  { id: 7, name: "Giải trí", type: "expense", emoji: "🎮", color: "from-cyan-400 to-blue-500" },
+  { id: 8, name: "Thú cưng", type: "expense", emoji: "🐱", color: "from-amber-400 to-yellow-500" },
+  { id: 9, name: "Khác", type: "expense", emoji: "📌", color: "from-slate-400 to-slate-600" },
+  { id: 10, name: "Lương", type: "income", emoji: "💼", color: "from-emerald-400 to-green-600" },
+  { id: 11, name: "Làm thêm", type: "income", emoji: "⏳", color: "from-teal-400 to-emerald-600" },
+  { id: 12, name: "Thưởng", type: "income", emoji: "🎁", color: "from-amber-400 to-yellow-500" },
+  { id: 13, name: "Gia đình hỗ trợ", type: "income", emoji: "💖", color: "from-pink-400 to-rose-500" },
+  { id: 14, name: "Đầu tư", type: "income", emoji: "📈", color: "from-blue-400 to-cyan-500" },
+  { id: 15, name: "Khác", type: "income", emoji: "✨", color: "from-slate-400 to-slate-600" },
+];
+
+function getLocalCategories() {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_KEY);
+    if (!raw) {
+      localStorage.setItem(CATEGORIES_KEY, JSON.stringify(defaultCategories));
+      return defaultCategories;
+    }
+    return JSON.parse(raw);
+  } catch {
+    return defaultCategories;
+  }
+}
+
+function saveLocalCategories(list) {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error("Lỗi lưu danh mục vào localStorage:", e);
+  }
+}
 
 const defaultTransactions = [
   {
@@ -265,5 +305,91 @@ export const api = {
 
     localStorage.setItem(BUDGET_KEY, String(limit_amount));
     return { data: { month, limit_amount }, isOnline: false };
+  },
+
+  // Lấy danh sách danh mục
+  async getCategories(type) {
+    try {
+      const url = type ? `${API_BASE}/categories?type=${type}` : `${API_BASE}/categories`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return { data: json.data, isOnline: true };
+      }
+    } catch {
+      // Fallback
+    }
+
+    let list = getLocalCategories();
+    if (type) {
+      list = list.filter((c) => c.type === type);
+    }
+    return { data: list, isOnline: false };
+  },
+
+  // Thêm danh mục mới
+  async createCategory(catData) {
+    try {
+      const res = await fetch(`${API_BASE}/categories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(catData),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return { data: json.data, isOnline: true };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const list = getLocalCategories();
+    const newCat = { ...catData, id: Date.now() };
+    const updated = [...list, newCat];
+    saveLocalCategories(updated);
+    return { data: newCat, isOnline: false };
+  },
+
+  // Cập nhật danh mục
+  async updateCategory(id, catData) {
+    try {
+      const res = await fetch(`${API_BASE}/categories/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(catData),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return { data: json.data, isOnline: true };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const list = getLocalCategories();
+    const updated = list.map((c) => (c.id === Number(id) ? { ...c, ...catData } : c));
+    saveLocalCategories(updated);
+    const updatedItem = updated.find((c) => c.id === Number(id));
+    return { data: updatedItem, isOnline: false };
+  },
+
+  // Xóa danh mục
+  async deleteCategory(id) {
+    try {
+      const res = await fetch(`${API_BASE}/categories/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return { isOnline: true };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const list = getLocalCategories();
+    const updated = list.filter((c) => c.id !== Number(id));
+    saveLocalCategories(updated);
+    return { isOnline: false };
   },
 };

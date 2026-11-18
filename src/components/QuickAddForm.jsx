@@ -3,7 +3,11 @@ import { Plus, Minus, X, Tag, Calendar, FileText, CheckCircle2 } from "lucide-re
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "../constants/categories";
 import { parseSmartAmount, numberToVietnameseWords, formatRawVND } from "../utils/format";
 
-export default function QuickAddForm({ onAddTransaction }) {
+export default function QuickAddForm({
+  onAddTransaction,
+  allCategories = [],
+  onOpenCategoryManager,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   // Khoản chi luôn là mặc định
   const [type, setType] = useState("expense");
@@ -14,7 +18,21 @@ export default function QuickAddForm({ onAddTransaction }) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+  const dynamicExpenseCategories = allCategories
+    .filter((c) => c.type === "expense")
+    .map((c) => ({ label: c.name || c.label, emoji: c.emoji || "📌", color: c.color }));
+  const dynamicIncomeCategories = allCategories
+    .filter((c) => c.type === "income")
+    .map((c) => ({ label: c.name || c.label, emoji: c.emoji || "✨", color: c.color }));
+
+  const categories =
+    type === "expense"
+      ? dynamicExpenseCategories.length > 0
+        ? dynamicExpenseCategories
+        : EXPENSE_CATEGORIES
+      : dynamicIncomeCategories.length > 0
+      ? dynamicIncomeCategories
+      : INCOME_CATEGORIES;
 
   // Tính toán số tiền quy đổi theo thời gian thực
   const parsedAmount = parseSmartAmount(amount);
@@ -22,7 +40,15 @@ export default function QuickAddForm({ onAddTransaction }) {
 
   const handleTypeChange = (newType) => {
     setType(newType);
-    setCategory(newType === "expense" ? "Trà sữa / Cà phê" : "Lương");
+    const targetCategories =
+      newType === "expense"
+        ? dynamicExpenseCategories.length > 0
+          ? dynamicExpenseCategories
+          : EXPENSE_CATEGORIES
+        : dynamicIncomeCategories.length > 0
+        ? dynamicIncomeCategories
+        : INCOME_CATEGORIES;
+    setCategory(targetCategories[0]?.label || (newType === "expense" ? "Trà sữa / Cà phê" : "Lương"));
   };
 
   const handleOpenForm = (targetType) => {
@@ -269,10 +295,22 @@ export default function QuickAddForm({ onAddTransaction }) {
 
           {/* Chọn Danh mục */}
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5" />
-              <span>Chọn danh mục phù hợp:</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold text-slate-600 flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Chọn danh mục phù hợp:</span>
+              </label>
+              {onOpenCategoryManager && (
+                <button
+                  type="button"
+                  onClick={onOpenCategoryManager}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-indigo-50 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Tùy chỉnh danh mục</span>
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {categories.map((c) => {
                 const isSelected = category === c.label;

@@ -1,6 +1,11 @@
 import { Search, X } from "lucide-react";
 
-export default function FilterBar({ filters, setFilters }) {
+export default function FilterBar({ filters, setFilters, categories = [] }) {
+  // Lọc danh sách danh mục theo loại tiền đang chọn
+  const availableCategories = categories.filter(
+    (c) => filters.type === "all" || c.type === filters.type
+  );
+
   return (
     <div className="mb-4 space-y-2.5">
       {/* Ô tìm kiếm to rõ */}
@@ -26,7 +31,7 @@ export default function FilterBar({ filters, setFilters }) {
 
       {/* Bộ lọc loại Thu/Chi và Thời gian dạng nút bấm rõ ràng (Khoản Chi luôn ở đầu) */}
       <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 scrollbar-none text-xs">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {[
             { id: "expense", label: "💸 Khoản Chi", activeClass: "bg-rose-600 text-white shadow-xs" },
             { id: "income", label: "💵 Khoản Thu", activeClass: "bg-emerald-600 text-white shadow-xs" },
@@ -35,7 +40,13 @@ export default function FilterBar({ filters, setFilters }) {
             <button
               key={item.id}
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, type: item.id }))}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  type: item.id,
+                  category: "Tất cả", // Reset danh mục khi đổi loại để tránh xung đột
+                }))
+              }
               className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
                 filters.type === item.id
                   ? item.activeClass
@@ -47,17 +58,37 @@ export default function FilterBar({ filters, setFilters }) {
           ))}
         </div>
 
-        {/* Mốc thời gian */}
-        <select
-          value={filters.period}
-          onChange={(e) => setFilters((prev) => ({ ...prev, period: e.target.value }))}
-          className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"
-        >
-          <option value="month">Tháng này</option>
-          <option value="today">Hôm nay</option>
-          <option value="week">7 ngày qua</option>
-          <option value="all">Toàn bộ</option>
-        </select>
+        {/* Lọc danh mục & Mốc thời gian */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {availableCategories.length > 0 && (
+            <select
+              value={filters.category}
+              onChange={(e) => setFilters((prev) => ({ ...prev, category: e.target.value }))}
+              className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs max-w-[120px] truncate"
+            >
+              <option value="Tất cả">Tất cả danh mục</option>
+              {availableCategories.map((c) => {
+                const catName = c.name || c.label;
+                return (
+                  <option key={c.id || catName} value={catName}>
+                    {c.emoji ? `${c.emoji} ` : ""}{catName}
+                  </option>
+                );
+              })}
+            </select>
+          )}
+
+          <select
+            value={filters.period}
+            onChange={(e) => setFilters((prev) => ({ ...prev, period: e.target.value }))}
+            className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"
+          >
+            <option value="month">Tháng này</option>
+            <option value="today">Hôm nay</option>
+            <option value="week">7 ngày qua</option>
+            <option value="all">Toàn bộ</option>
+          </select>
+        </div>
       </div>
     </div>
   );

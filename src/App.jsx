@@ -7,12 +7,15 @@ import FilterBar from "./components/FilterBar";
 import TransactionList from "./components/TransactionList";
 import AnalyticsChart from "./components/AnalyticsChart";
 import MobileBottomNav from "./components/MobileBottomNav";
+import CategoryManagerModal from "./components/CategoryManagerModal";
 import { api } from "./services/api";
 import { ReceiptText, PieChart, Target } from "lucide-react";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("overview"); // "overview" (Tổng quan: Thống kê + Thêm) | "history" (Sổ giao dịch) | "budget" (Hạn mức)
   const [transactions, setTransactions] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpense: 0,
@@ -32,7 +35,7 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load danh sách và thống kê
+  // Load danh sách giao dịch và thống kê
   const refreshData = useCallback(async (currentFilters = filters) => {
     try {
       const [txResult, statsResult] = await Promise.all([
@@ -51,7 +54,41 @@ export default function App() {
     }
   }, [filters]);
 
-  // Khởi tạo & Tự động lọc khi filters thay đổi
+  // Load danh mục thu chi
+  const loadCategories = useCallback(async () => {
+    try {
+      const res = await api.getCategories();
+      if (res && res.data) {
+        setAllCategories(res.data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải danh mục:", err);
+    }
+  }, []);
+
+  // Khởi tạo danh mục ban đầu
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function initCategories() {
+      try {
+        const res = await api.getCategories();
+        if (!isCancelled && res && res.data) {
+          setAllCategories(res.data);
+        }
+      } catch (err) {
+        console.error("Lỗi khi khởi tạo danh mục:", err);
+      }
+    }
+
+    initCategories();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  // Tự động lọc khi filters thay đổi
   useEffect(() => {
     let isCancelled = false;
 
@@ -106,10 +143,32 @@ export default function App() {
     await refreshData(filters);
   };
 
+  // Thao tác với Danh mục (Thêm, Sửa, Xóa)
+  const handleAddCategory = async (catData) => {
+    await api.createCategory(catData);
+    await loadCategories();
+    await refreshData(filters);
+  };
+
+  const handleUpdateCategory = async (id, catData) => {
+    await api.updateCategory(id, catData);
+    await loadCategories();
+    await refreshData(filters);
+  };
+
+  const handleDeleteCategory = async (id) => {
+    await api.deleteCategory(id);
+    await loadCategories();
+    await refreshData(filters);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 sm:p-6 pb-20 sm:pb-8 antialiased">
       <div className="max-w-md mx-auto">
-        <Header isOnline={isOnline} />
+        <Header
+          isOnline={isOnline}
+          onOpenCategoryManager={() => setIsCatModalOpen(true)}
+        />
 
         <OverviewCards
           balance={stats.balance}
@@ -158,7 +217,11 @@ export default function App() {
         {/* Tab 1: Gộp chức năng Thêm Thu Chi & Thống Kê Thu Chi vào 1 tab để tiết kiệm không gian */}
         {activeTab === "overview" && (
           <>
-            <QuickAddForm onAddTransaction={handleAddTransaction} />
+            <QuickAddForm
+              onAddTransaction={handleAddTransaction}
+              allCategories={allCategories}
+              onOpenCategoryManager={() => setIsCatModalOpen(true)}
+            />
             <AnalyticsChart
               expenseCategories={stats.expenseCategories || stats.categories || []}
               incomeCategories={stats.incomeCategories || []}
@@ -171,7 +234,11 @@ export default function App() {
         {/* Tab 2: Sổ giao dịch chi tiết và bộ lọc tìm kiếm */}
         {activeTab === "history" && (
           <>
-            <FilterBar filters={filters} setFilters={setFilters} />
+            <FilterBar
+              filters={filters}
+              setFilters={setFilters}
+              categories={allCategories}
+            />
             <TransactionList
               transactions={transactions}
               onDeleteTransaction={handleDeleteTransaction}
@@ -189,6 +256,16 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* Modal quản lý & tùy chỉnh danh mục */}
+      <CategoryManagerModal
+        isOpen={isCatModalOpen}
+        onClose={() => setIsCatModalOpen(false)}
+        categories={allCategories}
+        onAddCategory={handleAddCategory}
+        onUpdateCategory={handleUpdateCategory}
+        onDeleteCategory={handleDeleteCategory}
+      />
 
       {/* Điều hướng dưới đáy cho Mobile */}
       <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
