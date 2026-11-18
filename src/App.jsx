@@ -11,7 +11,7 @@ import { api } from "./services/api";
 import { ReceiptText, PieChart, Target } from "lucide-react";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("transactions"); // "transactions" | "analytics" | "budget"
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" (Tổng quan: Thống kê + Thêm) | "history" (Sổ giao dịch) | "budget" (Hạn mức)
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -20,10 +20,12 @@ export default function App() {
     budgetLimit: 0,
     spentPercent: 0,
     categories: [],
+    expenseCategories: [],
+    incomeCategories: [],
   });
   const [filters, setFilters] = useState({
     search: "",
-    type: "all",
+    type: "expense", // Mặc định mở Sổ Giao Dịch là hiện Khoản Chi trước
     category: "Tất cả",
     period: "month",
   });
@@ -118,26 +120,26 @@ export default function App() {
         {/* Thanh chuyển tab trên Desktop / Tablet */}
         <div className="hidden sm:flex bg-slate-200/60 p-1 rounded-xl mb-5 text-xs font-semibold">
           <button
-            onClick={() => setActiveTab("transactions")}
+            onClick={() => setActiveTab("overview")}
             className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === "transactions"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <ReceiptText className="w-3.5 h-3.5" />
-            <span>Thu Chi</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === "analytics"
+              activeTab === "overview"
                 ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <PieChart className="w-3.5 h-3.5" />
-            <span>Thống Kê</span>
+            <span>Tổng Quan & Ghi Chép</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              activeTab === "history"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <ReceiptText className="w-3.5 h-3.5" />
+            <span>Sổ Giao Dịch</span>
           </button>
           <button
             onClick={() => setActiveTab("budget")}
@@ -153,9 +155,22 @@ export default function App() {
         </div>
 
         {/* Nội dung theo Tab */}
-        {activeTab === "transactions" && (
+        {/* Tab 1: Gộp chức năng Thêm Thu Chi & Thống Kê Thu Chi vào 1 tab để tiết kiệm không gian */}
+        {activeTab === "overview" && (
           <>
             <QuickAddForm onAddTransaction={handleAddTransaction} />
+            <AnalyticsChart
+              expenseCategories={stats.expenseCategories || stats.categories || []}
+              incomeCategories={stats.incomeCategories || []}
+              totalExpense={stats.totalExpense}
+              totalIncome={stats.totalIncome}
+            />
+          </>
+        )}
+
+        {/* Tab 2: Sổ giao dịch chi tiết và bộ lọc tìm kiếm */}
+        {activeTab === "history" && (
+          <>
             <FilterBar filters={filters} setFilters={setFilters} />
             <TransactionList
               transactions={transactions}
@@ -165,13 +180,7 @@ export default function App() {
           </>
         )}
 
-        {activeTab === "analytics" && (
-          <AnalyticsChart
-            categories={stats.categories || []}
-            totalExpense={stats.totalExpense}
-          />
-        )}
-
+        {/* Tab 3: Hạn mức ngân sách */}
         {activeTab === "budget" && (
           <BudgetTracker
             budgetLimit={stats.budgetLimit}

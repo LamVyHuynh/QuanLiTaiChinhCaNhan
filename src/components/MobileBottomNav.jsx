@@ -2,8 +2,8 @@ import { ReceiptText, PieChart, Target } from "lucide-react";
 
 export default function MobileBottomNav({ activeTab, setActiveTab }) {
   const tabs = [
-    { id: "analytics", label: "Thống Kê", icon: PieChart },
-    { id: "transactions", label: "Thu Chi", icon: ReceiptText },
+    { id: "overview", label: "Tổng Quan", icon: PieChart },
+    { id: "history", label: "Sổ Giao Dịch", icon: ReceiptText },
     { id: "budget", label: "Hạn Mức", icon: Target },
   ];
 
