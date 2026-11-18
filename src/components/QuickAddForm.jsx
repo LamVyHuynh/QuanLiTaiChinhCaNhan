@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Plus, Minus, X, Tag, Calendar, FileText } from "lucide-react";
+import { Plus, Minus, X, Tag, Calendar, FileText, CheckCircle2 } from "lucide-react";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "../constants/categories";
+import { parseSmartAmount, numberToVietnameseWords, formatRawVND } from "../utils/format";
 
 export default function QuickAddForm({ onAddTransaction }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,10 @@ export default function QuickAddForm({ onAddTransaction }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+
+  // Tính toán số tiền quy đổi theo thời gian thực
+  const parsedAmount = parseSmartAmount(amount);
+  const amountWords = numberToVietnameseWords(parsedAmount);
 
   const handleTypeChange = (newType) => {
     setType(newType);
@@ -29,20 +34,36 @@ export default function QuickAddForm({ onAddTransaction }) {
     }
   };
 
+  // Nút bấm nhanh thêm hậu tố k, tr, ty, 000 để người dùng điện thoại không phải đổi bàn phím
+  const handleQuickSuffix = (suffix) => {
+    if (!amount) {
+      if (suffix === "k") setAmount("20k");
+      else if (suffix === "tr") setAmount("1tr");
+      else if (suffix === "ty") setAmount("1ty");
+      else if (suffix === "000") setAmount("10000");
+      return;
+    }
+    const trimmed = amount.trim();
+    if (suffix === "000") {
+      const onlyDigits = trimmed.replace(/\D/g, "");
+      setAmount(onlyDigits ? `${onlyDigits}000` : "1000");
+    } else {
+      const base = trimmed.replace(/[a-zA-Zà-ỹÀ-Ỹ\s]+$/, "");
+      setAmount(`${base || "1"}${suffix}`);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
       alert("Bạn hãy nhập tên khoản tiền nhé (Ví dụ: Ăn trưa, Đổ xăng...)");
       return;
     }
-    const rawAmount = Number(amount);
-    if (!rawAmount || rawAmount <= 0) {
-      alert("Vui lòng nhập số tiền lớn hơn 0");
+    const numAmount = parseSmartAmount(amount);
+    if (!numAmount || numAmount <= 0) {
+      alert("Vui lòng nhập số tiền hợp lệ (Ví dụ: 19k, 1tr5, 3tr450k, 1ty, hoặc 50000)");
       return;
     }
-
-    // Tự động hiểu số tiền: gõ 19 là 19k (19.000đ), gõ 19000 cũng là 19.000đ
-    const numAmount = rawAmount < 1000 ? rawAmount * 1000 : rawAmount;
 
     setIsSubmitting(true);
     try {
@@ -148,25 +169,101 @@ export default function QuickAddForm({ onAddTransaction }) {
               />
             </div>
 
+            {/* Ô nhập số tiền thông minh (Nhận diện cả số và chữ k, tr, ty...) */}
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">
-                Số tiền (Đơn vị tính: k):
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-600">
+                  Số tiền (Nhập chữ & số: 19k, 1tr5, 3tr450k, 1ty):
+                </label>
+                {amount && (
+                  <button
+                    type="button"
+                    onClick={() => setAmount("")}
+                    className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold"
+                  >
+                    Xóa nhập lại
+                  </button>
+                )}
+              </div>
+
               <div className="relative">
                 <input
-                  type="number"
-                  placeholder="Ví dụ: gõ 19 là 19k (19.000đ)"
+                  type="text"
+                  placeholder="Gõ ví dụ: 19k, 1tr5, 3tr450k, 1ty hoặc 50000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl pl-3.5 pr-14 py-2.5 text-sm font-bold outline-none focus:border-indigo-500 text-slate-900 transition-colors shadow-xs"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-sm font-bold outline-none focus:border-indigo-500 text-slate-900 transition-colors shadow-xs placeholder:text-slate-300 placeholder:font-normal"
                 />
-                <span className="absolute right-3 top-2 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-extrabold text-xs">
-                  k
-                </span>
+                {parsedAmount > 0 && (
+                  <div className="absolute right-3 top-2.5 text-emerald-500">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                )}
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
-                💡 Mẹo: Gõ <strong>19</strong> là <strong>19k</strong>. Gõ <strong>3450</strong> là <strong>3tr450k</strong>!
-              </p>
+
+              {/* Hàng nút bấm nhanh hậu tố k, tr, ty, 000 giải quyết tiện lợi trên bàn phím điện thoại */}
+              <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+                <span className="text-[11px] text-slate-400 shrink-0 font-medium mr-0.5">
+                  Bấm nhanh:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSuffix("k")}
+                  className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold border border-indigo-100 transition-colors shrink-0"
+                  title="Thêm đơn vị nghìn (k)"
+                >
+                  +k (nghìn)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSuffix("tr")}
+                  className="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold border border-purple-100 transition-colors shrink-0"
+                  title="Thêm đơn vị triệu (tr)"
+                >
+                  +tr (triệu)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSuffix("ty")}
+                  className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-extrabold border border-amber-100 transition-colors shrink-0"
+                  title="Thêm đơn vị tỷ (ty)"
+                >
+                  +ty (tỷ)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSuffix("000")}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-200 transition-colors shrink-0 font-mono"
+                  title="Thêm 3 số 0"
+                >
+                  +000
+                </button>
+              </div>
+
+              {/* Hộp xem trước số tiền quy đổi thời gian thực - Chống nhầm số 0 tuyệt đối */}
+              {parsedAmount > 0 && (
+                <div
+                  className={`mt-2 p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
+                    type === "expense"
+                      ? "bg-rose-50/90 border-rose-200 text-rose-900"
+                      : "bg-emerald-50/90 border-emerald-200 text-emerald-900"
+                  }`}
+                >
+                  <div>
+                    <span className="text-[10px] block font-bold uppercase tracking-wider opacity-70">
+                      Hệ thống hiểu là:
+                    </span>
+                    <span className="font-black text-sm sm:text-base">
+                      {formatRawVND(parsedAmount)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-block px-2 py-0.5 rounded-md bg-white font-bold text-[11px] border border-black/5 shadow-2xs">
+                      {amountWords}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -232,7 +329,13 @@ export default function QuickAddForm({ onAddTransaction }) {
                 : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
             }`}
           >
-            <span>{isSubmitting ? "Đang lưu..." : `Xong - Lưu Khoản ${type === "expense" ? "Chi" : "Thu"}`}</span>
+            <span>
+              {isSubmitting
+                ? "Đang lưu..."
+                : `Xong - Lưu Khoản ${type === "expense" ? "Chi" : "Thu"} (${
+                    parsedAmount > 0 ? formatRawVND(parsedAmount) : ""
+                  })`}
+            </span>
           </button>
         </form>
       )}

@@ -162,15 +162,13 @@ const server = app.listen(0, "127.0.0.1", async () => {
     console.log(`KẾT QUẢ KIỂM THỬ: ${passed} PASS, ${failed} FAIL`);
     console.log(`----------------------------------------\n`);
 
-    if (failed > 0) {
-      process.exit(1);
-    } else {
-      process.exit(0);
-    }
+    server.close(() => {
+      process.exit(failed > 0 ? 1 : 0);
+    });
   } catch (fatal) {
     console.error("Lỗi nghiêm trọng trong test suite:", fatal);
-    process.exit(1);
-  } finally {
-    server.close();
+    server.close(() => {
+      process.exit(1);
+    });
   }
 });
